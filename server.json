@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.pipeworx-io/data-cambridge",
+  "title": "Data Cambridge",
+  "description": "DataCambridge MCP — Cambridge open data (data.cambridgema.gov, Socrata SODA API).",
+  "version": "0.1.0",
+  "websiteUrl": "https://pipeworx.io/packs/data-cambridge",
+  "repository": {
+    "url": "https://github.com/pipeworx-io/mcp-data-cambridge",
+    "source": "github"
+  },
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://gateway.pipeworx.io/data-cambridge/mcp"
+    }
+  ]
+}
