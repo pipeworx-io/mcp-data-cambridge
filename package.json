@@ -1,6 +1,6 @@
 {
   "name": "@pipeworx/mcp-data-cambridge",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "DataCambridge MCP — Cambridge open data (data.cambridgema.gov, Socrata SODA API).",
   "type": "module",
   "main": "src/index.ts",
@@ -26,7 +26,7 @@
     "@cloudflare/workers-types": "^4.20260405.1"
   },
   "pipeworx": {
-    "sourceHash": "v1-fa1746d4ec3a39599c891a5306aa7ecb60ea0fda63a2d3482c75e16efe67a73e",
-    "sourceCommit": "60f04b68c347e970c6be94a53439d1364061fc06"
+    "sourceHash": "v1-b19d92e7f01e358e00f68711638266c893b8558d3053e853cf5378393856448e",
+    "sourceCommit": "5b29c2b0c11e1fcd954969a245b474e6e9475116"
   }
 }
