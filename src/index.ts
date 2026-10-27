@@ -934,6 +934,44 @@ async function parseJsonBounded<T>(
     );
   }
 }
+
+
+
+/**
+ * Failed Socrata call whose resource id / SoQL came FROM THE CALLER.
+ *
+ * ~55 city and state open-data packs each carry a private `socrataGet`, and each
+ * threw a bare `httpError` on every non-2xx. A caller who typed a wrong
+ * `resource_id` (upstream 404 "Not found") or a column that does not exist
+ * (400 `query.soql.no-such-column`) therefore booked as OUR `error` and put the
+ * pack on Problem Tools for a bug it does not have (fleet #3724: santaclara 9,
+ * cookcounty 7, cambridge 3 rows in 24h).
+ *
+ * Deliberately narrow, because `httpError` is deliberately NOT a classifier (a
+ * 400 can be a query WE built wrong):
+ *   - 404  -> not_found. Only call this where the id in the path was supplied by
+ *     the caller. A CURATED dataset id that 404s means Socrata retired it, which
+ *     is our defect and must stay `error` — so curated call sites keep httpError.
+ *   - 400  -> user_error ONLY when Socrata's own body names a query-compiler
+ *     fault (`query.soql.*`, `query.compiler.*`): that code is Socrata saying the
+ *     SoQL text is wrong. Any other 400 falls through to the plain error.
+ * Every other status is returned exactly as httpError would have.
+ */
+async function socrataCallerError(res: Response, host: string): Promise<Error> {
+  const plain = await httpErrorMessage(res.clone(), host);
+  if (res.status === 404) {
+    return new Error(
+      `not_found: ${host} has no dataset at that resource_id (upstream 404). Find a valid 4x4 id with the pack's datasets tool, then retry.`,
+    );
+  }
+  if (res.status === 400) {
+    const body = await res.clone().text().catch(() => '');
+    if (/query\.(?:soql|compiler)\./i.test(body)) {
+      return new Error(`user_error: ${plain.replace(/^[^:]*:\s*/, `${host} rejected the query: `)} Check where/select/group/order against the dataset's columns (metadata tool).`);
+    }
+  }
+  return new Error(plain);
+}
 /**
  * DataCambridge MCP — Cambridge open data (data.cambridgema.gov, Socrata SODA API).
  *
@@ -1031,7 +1069,7 @@ function headers(apiKey?: string): Record<string, string> {
   return h;
 }
 
-async function socrataGet(path: string, apiKey?: string): Promise<unknown> {
+async function socrataGet(path: string, apiKey?: string, callerId = false): Promise<unknown> {
   const res = await pwFetch(`${BASE}${path}`, { headers: headers(apiKey) });
   if (res.status === 429) throw new Error('upstream_throttled: data.cambridgema.gov rate limit (HTTP 429). Pass _apiKey (Socrata app token) for higher limits.');
   // Socrata answers a THROTTLED request with 403 "Invalid app_token specified",
@@ -1050,7 +1088,7 @@ async function socrataGet(path: string, apiKey?: string): Promise<unknown> {
       );
     }
   }
-  if (!res.ok) throw await httpError(res, 'data.cambridgema.gov');
+  if (!res.ok) throw callerId ? await socrataCallerError(res, 'data.cambridgema.gov') : await httpError(res, 'data.cambridgema.gov');
   return res.json();
 }
 
@@ -1089,7 +1127,7 @@ async function sfQuery(args: Record<string, unknown>, apiKey?: string) {
   }
   p.set('$limit', String(Math.min(5000, Math.max(1, Number(args.limit) || 100))));
   if (args.offset != null) p.set('$offset', String(Math.max(0, Number(args.offset))));
-  const rows = (await socrataGet(`/resource/${encodeURIComponent(id)}.json?${p}`, apiKey)) as unknown[];
+  const rows = (await socrataGet(`/resource/${encodeURIComponent(id)}.json?${p}`, apiKey, true)) as unknown[];
   return { resource_id: id, count: Array.isArray(rows) ? rows.length : 0, source: 'DataCambridge (data.cambridgema.gov)', rows };
 }
 
