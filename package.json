@@ -1,12 +1,20 @@
 {
   "name": "@pipeworx/mcp-data-cambridge",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "DataCambridge MCP — Cambridge open data (data.cambridgema.gov, Socrata SODA API).",
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./tools.json": "./tools.json",
+    "./package.json": "./package.json"
+  },
   "bin": {
     "mcp-data-cambridge": "bin/cli.js"
+  },
+  "files": ["bin/", "lib/", "tools.json", "server.json"],
+  "engines": {
+    "node": ">=18"
   },
   "keywords": ["mcp", "mcp-server", "model-context-protocol", "pipeworx", "data-cambridge"],
   "license": "MIT",
@@ -14,19 +22,12 @@
     "type": "git",
     "url": "git+https://github.com/pipeworx-io/mcp-data-cambridge.git"
   },
-  "scripts": {
-    "typecheck": "tsc --noEmit"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0",
-    "tsx": "^4.19.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.3",
-    "@cloudflare/workers-types": "^4.20260405.1"
-  },
+  "mcpName": "io.github.pipeworx-io/data-cambridge",
   "pipeworx": {
-    "sourceHash": "v1-eb16a8fbc488b9da121ed9e92ad27efc6fc09b92dcb60f696562b25cc415ef38",
-    "sourceCommit": "ba9dd6df5992aeb16ef2425ee86d1752c34ca636"
+    "mode": "gateway",
+    "slug": "data-cambridge",
+    "gatewaySlug": "data-cambridge",
+    "sourceHash": "v1-1c7e4a27f7a893713f75690683737a9b82b743f1c3784368a406b5b2a5b23044",
+    "sourceCommit": "0b3faaa4d85299a961dd86dea75a0f0e1dad280c"
   }
 }
